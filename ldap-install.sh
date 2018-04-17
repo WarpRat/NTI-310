@@ -6,7 +6,7 @@
 #Install git and clone the instructional repo
 yum install -y git
 
-git clone https://github.com/nic-instruction/hello-nti-310/ /tmp
+git clone https://github.com/nic-instruction/hello-nti-310/ /tmp/
 
 
 #Intall the ldap packages
@@ -22,7 +22,7 @@ systemctl start slapd
 yum install -y epel-release
 yum install -y httpd phpldapadmin
 
-sesebool -P httpd_can_connect_ldap on
+setsebool -P httpd_can_connect_ldap on
 
 systemctl enable httpd
 systemctl start httpd
@@ -61,7 +61,7 @@ changetype: modify
 replace: olcRootPW
 olcRootPW: $newhash" >> /tmp/db.ldif
 
-ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/dj.ldif
+ldapmodify -Y EXTERNAL -H ldapi:/// -f /tmp/db.ldif
 
 #Restrict auth
 
@@ -76,7 +76,7 @@ ldapmodify -Y EXTERNAL  -H ldapi:/// -f /tmp/monitor.ldif
 
 openssl req -new -x509 -nodes -out /etc/openldap/certs/nti310ldapcert.pem -keyout /etc/openldap/certs/nti310ldapkey.pem -days 365 -subj "/C=US/ST=WA/L=Seattle/O=SCC/OU=IT/CN=nti310.local"
 
-chown -R ldap. /etc/opeldap/certs/nti*.pem
+chown -R ldap. "/etc/opeldap/certs/nti*.pem"
 
 #Use Certs in LDAP
 
