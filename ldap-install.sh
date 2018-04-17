@@ -31,7 +31,7 @@ systemctl start httpd
 
 sed -i 's,Require local,#Require local\n    Require all granted,g' /etc/httpd/conf.d/phpldapadmin.conf
 
-cp /tmp/hello-nti-310/config/config.php /etc/phpldpadmin/config.php
+cp /tmp/hello-nti-310/config/config.php /etc/phpldapadmin/config.php
 chown ldap:apache /etc/phpldapadmin/config.php  
 
 systemctl restart httpd
