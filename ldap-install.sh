@@ -6,7 +6,9 @@
 #Install git and clone the instructional repo
 yum install -y git
 
-git clone https://github.com/nic-instruction/hello-nti-310/ /tmp/
+
+mkdir /tmp/hello-nti-310
+git clone https://github.com/nic-instruction/hello-nti-310/ /tmp/hello-nti-310
 
 
 #Intall the ldap packages
@@ -128,4 +130,4 @@ objectClass: organizationalUnit
 ou: Group" > /tmp/base.ldif
 
 #Add the basic structure just created to the LDAP database.
-ldapdd -x -W -D "cn=ldapadm,dc=nti310,dc=local" -f base.ldif -y /root/ldap_admin_pass
+ldapadd -x -W -D "cn=ldapadm,dc=nti310,dc=local" -f base.ldif -y /root/ldap_admin_pass
