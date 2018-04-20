@@ -8,5 +8,5 @@ ldap-auth-config	ldap-auth-config/pam_password	select	md5
 ldap-auth-config	ldap-auth-config/dblogin	boolean	false
 ldap-auth-config	ldap-auth-config/ldapns/ldap_version	select	3
 ldap-auth-config	ldap-auth-config/dbrootlogin	boolean	false
-ldap-auth-config	ldap-auth-config/ldapns/ldap-server	string	ldap://172.31.42.76
+ldap-auth-config	ldap-auth-config/ldapns/ldap-server	string	ldap://172.31.28.118
 ldap-auth-config	ldap-auth-config/ldapns/base-dn	string	dc=nti310,dc=local
