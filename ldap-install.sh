@@ -130,4 +130,4 @@ objectClass: organizationalUnit
 ou: Group" > /tmp/base.ldif
 
 #Add the basic structure just created to the LDAP database.
-ldapadd -x -W -D "cn=ldapadm,dc=nti310,dc=local" -f base.ldif -y /root/ldap_admin_pass
+ldapadd -x -W -D "cn=ldapadm,dc=nti310,dc=local" -f /tmp/base.ldif -y /root/ldap_admin_pass
