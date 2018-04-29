@@ -1,4 +1,15 @@
 ---
+##################################
+#
+#Use: Pass ldapadm_pw in via command line --extra-variables
+#Todo: Update to use ansible vault for secrets
+#      Break up into roles for easier portability and reusability
+#      Dynamically set ldap client ansible vars based on server IP
+#
+#Robert Russell 4/29/18
+#
+##################################
+
 - hosts: ldap-server
   remote_user: vagrant 
   become: yes
