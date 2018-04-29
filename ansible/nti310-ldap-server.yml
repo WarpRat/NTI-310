@@ -1,0 +1,129 @@
+---
+- hosts: ldap-server
+  remote_user: vagrant 
+  become: yes
+  vars:
+          ldapadm_pw:
+          ldap_server_name: NTI-310 LDAP Server With Ansible
+          ldap_server_ip: 127.0.0.1
+          ldap_search_base: dc=nti310,dc=local #set for both phpldapadmin and slapd here
+          ldap_server_port: 389
+          auth_type: session #If you plan to use cookie auth, change the config.php.j2
+          ldap_bind_id: cn=ldapadm,dc=nti310,dc=local
+          ldap_password_hash: crypt
+          ldap_login_attr: dn
+          ldap_httpd_mod_authz: all granted
+          ldap_auth:
+                  server_uri: ldapi:///
+                  bind_dn: cn=ldapadm,dc=nti310,dc=local
+                  bind_pw: "{{ ldapadm_pw }}"
+  tasks:
+          - debug: msg={CRYPT}{{ ldapadm_pw | password_hash('sha512') }}
+          - name: Add EPEL
+            yum_repository:
+                    name: epel
+                    description: EPEL YUM repo
+                    baseurl: https://download.fedoraproject.org/pub/epel/$releasever/$basearch/
+                    gpgcheck: no
+          - name: Install ldap
+            yum: name={{item}} state=latest
+            with_items:
+                    - openldap-servers
+                    - openldap-clients
+                    - httpd
+                    - phpldapadmin
+                    - libsemanage-python
+                    - python-pip
+                    - python-devel
+                    - openldap-devel
+                    - gcc
+          - pip:
+                  name: pip
+                  extra_args: --upgrade
+          - pip:
+                  name: python-ldap
+                  extra_args: --upgrade
+          - name: SELinux setting for ldap
+            seboolean:
+                    name: httpd_can_connect_ldap
+                    state: yes
+                    persistent: yes
+          - name: copy default config
+            copy:
+                    src: /usr/share/openldap-servers/DB_CONFIG.example
+                    dest: /var/lib/ldap/DB_CONFIG
+                    owner: ldap
+                    group: ldap
+                    mode: 0644
+                    remote_src: yes
+          - name: Start and enable apache and slapd
+            service: name={{item}} state=started enabled=yes
+            with_items:
+                    - httpd
+                    - slapd
+          - name: Set phpldapadmin httpd config
+            template: src=phpldapadmin.conf.j2 dest=/etc/httpd/conf.d/phpldapadmin.conf
+            notify: restart apache
+          - name: Set phpldapadmin config
+            template: src=config.php.j2 dest=/etc/phpldapadmin/config.php
+          - name: Setup directory
+            ldap_attr:
+                    dn: olcDatabase={2}hdb,cn=config
+                    name: olcSuffix
+                    values: "{{ ldap_search_base }}"
+                    state: exact
+          - name: Setup Root User
+            ldap_attr:
+                    dn: olcDatabase={2}hdb,cn=config
+                    name: "{{ item.key  }}"
+                    values: "{{ item.value }}"
+                    state: exact
+            with_dict:
+                    olcRootDN: "{{ ldap_bind_id }}"
+                    olcRootPW: "{CRYPT}{{ ldapadm_pw | password_hash('sha512') }}"
+          - name: Setup monitoring directory
+            ldap_attr:
+                    dn: olcDatabase={1}monitor,cn=config
+                    name: olcAccess
+                    values:
+                            - >-
+                                {0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth"
+                                read by dn.base="cn=ldapadm,dc=nti310,dc=local"
+                                read by * none
+                    state: exact
+          - name: Import ldifs
+            command: /usr/bin/ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/cosine.ldif
+          - name: Import ldifs
+            command: /usr/bin/ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/nis.ldif
+          - name: Import ldifs
+            command: /usr/bin/ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/inetorgperson.ldif
+          - name: Create structure
+            ldap_entry:
+                    dn: dc=nti310,dc=local
+                    objectClass: top
+                    objectClass: domain
+                    params: "{{ ldap_auth }}"
+          - name: Create OU 
+            ldap_entry:
+                    dn: ou=People,dc=nti310,dc=local
+                    objectClass: organizationalUnit
+                    params: "{{ ldap_auth }}"
+          - name: Create group OU 
+            ldap_entry:
+                    dn: ou=Group,dc=nti310,dc=local
+                    objectClass: organizationalUnit
+                    params: "{{ ldap_auth }}"
+          - name: Create ldap admin entry
+            ldap_entry:
+                    dn: cn=ldapadm,dc=nti310,dc=local
+                    objectClass: organizationalRole
+                    attributes:
+                            description: LDAP Manager
+                    params: "{{ ldap_auth }}"
+
+
+  handlers:
+          - name: restart apache
+            service:
+                    name: httpd
+                    state: restarted
