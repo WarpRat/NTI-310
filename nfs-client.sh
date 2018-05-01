@@ -4,7 +4,7 @@
 #
 
 #Set the address of the server
-NFS_SERVER=192.168.121.222
+NFS_SERVER=172.31.17.241
 
 #Install the nfs client
 apt-get install -y nfs-client
