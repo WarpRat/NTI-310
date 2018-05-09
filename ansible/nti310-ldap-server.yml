@@ -111,8 +111,7 @@
           - name: Create structure
             ldap_entry:
                     dn: dc=nti310,dc=local
-                    objectClass: top
-                    objectClass: domain
+                    objectClass: [top, domain]
                     params: "{{ ldap_auth }}"
           - name: Create OU 
             ldap_entry:
