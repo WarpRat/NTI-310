@@ -13,6 +13,7 @@
 import googleapiclient.discovery
 import os
 import time
+from pprint import pprint
 
 def create_instance(compute, name, startup_script_file, project='nti310-320', zone='us-west1-a'):
   image_response = compute.images().getFromFamily(
@@ -79,6 +80,29 @@ def create_instance(compute, name, startup_script_file, project='nti310-320', zo
     zone=zone,
     body=config).execute()
 
+# [START wait_for_operation] - from https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/compute/api/create_instance.py
+def wait_for_operation(compute, project, zone, operation):
+    print('Waiting for operation to finish...')
+    while True:
+        result = compute.zoneOperations().get(
+            project=project,
+            zone=zone,
+            operation=operation).execute()
+
+        if result['status'] == 'DONE':
+            print("done.")
+            if 'error' in result:
+                raise Exception(result['error'])
+            return result
+
+        time.sleep(1)
+# [END wait_for_operation]
+
+
 if __name__ == '__main__':
   compute = googleapiclient.discovery.build('compute', 'v1')
-  create_instance(compute, 'test-instance-120', 'nfs-server.sh' )
+  operation = create_instance(compute, 'test-instance-120', 'nfs-server.sh' )
+  pprint(operation)
+  wait_for_operation(compute, project, zone, operation['name'])
+
+
