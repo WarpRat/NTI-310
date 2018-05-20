@@ -22,7 +22,7 @@ project = 'nti310-320'
 zone = 'us-west1-a'
 name = 'test-instance-100'
 pw_dir = '.script_passwd'
-#compute = googleapiclient.discovery.build('compute', 'v1')
+compute = googleapiclient.discovery.build('compute', 'v1')
 
 
 def create_instance(compute, name, startup_script, project, zone):
@@ -172,21 +172,20 @@ def save_pw(new_pass, name):
     with restrictive permissions for human use.'''
     user_home = os.path.expanduser('~'+os.environ['LOGNAME']+'/')
     if not os.path.isdir(
-      os.path.join(os.path.dirname(__file__), pw_dir)):
+      os.path.join(user_home, pw_dir)):
       print('making directory')
       os.makedirs(pw_dir, 0700)
     else:
       print('exists')
 
     os.umask(0)
-    with os.fdopen(os.open(os.path.join(os.path.dirname(__file__), pw_dir, name), os.O_WRONLY | os.O_CREAT, 0o600), 'w') as pw_file:
+    with os.fdopen(os.open(os.path.join(user_home, pw_dir, name), os.O_WRONLY | os.O_CREAT, 0o600), 'w') as pw_file:
         pw_file.write(new_pass)
 
 
 if __name__ == '__main__':
 
-    user_home = os.path.expanduser('~'+os.environ['LOGNAME']+'/')
-    print(user_home)
+
     #test_pass = pw_gen(32)
     #save_pw(test_pass, 'nadda')
 
