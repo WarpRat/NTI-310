@@ -148,17 +148,17 @@ def postgres():
     startup_script_edit = re.sub(r'(?<=postgres WITH PASSWORD ).*;', '\'{postgres}\';', startup_script)
     startup_script_edit = re.sub(r'(?<=db_srv WITH PASSWORD ).*;', '\'{db_srv}\';', startup_script_edit)
     pg_pw = pw_gen(24)
-    db_srv = pw_gen(24)
-    startup_script = startup_script_edit.format(postgres=pg_pw, db_srv=db_srv)
+    db_srv_pw = pw_gen(24)
+    startup_script = startup_script_edit.format(postgres=pg_pw, db_srv=db_srv_pw)
 
     db_id = build('postgres', startup_script)
     filter_id = 'id=' + db_id
     result = compute.instances().list(project=project, zone=zone, filter=filter_id).execute()
 
-    pg_pw_file = result['items'][0]['id'] + '-postgres'
-    db_srv_file = result['items'][0]['id'] + '-db_srv'
+    pg_pw_file = result['items'][0]['name'] + '_' + result['items'][0]['id'][-4:] + '_postgres'
+    db_srv_pw_file = result['items'][0]['name'] + '_' + result['items'][0]['id'][-4:] + '_db_srv'
     save_pw(pg_pw, pg_pw_file)
-    save_pw(pg_pw, pg_pw_file)
+    save_pw(db_srv_pw, db_srv_pw_file)
 
     return result['items'][0]['networkInterfaces'][0]['accessConfigs'][0]['natIP']
 
@@ -174,7 +174,7 @@ def save_pw(new_pass, name):
     if not os.path.isdir(
       os.path.join(user_home, pw_dir)):
       print('making directory')
-      os.makedirs(pw_dir, 0700)
+      os.makedirs(os.path.join(user_home, pw_dir), 0700)
     else:
       print('exists')
 
@@ -185,7 +185,8 @@ def save_pw(new_pass, name):
 
 if __name__ == '__main__':
 
-
+    postgres_ip=postgres()
+    print(postgres_ip)
     #test_pass = pw_gen(32)
     #save_pw(test_pass, 'nadda')
 
