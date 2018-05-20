@@ -14,16 +14,21 @@ import googleapiclient.discovery
 import os
 import time
 from pprint import pprint
+import re
 
-def create_instance(compute, name, startup_script_file, project='nti310-320', zone='us-west1-a'):
+project = 'nti310-320'
+zone = 'us-west1-a'
+name = 'test-instance-100'
+compute = googleapiclient.discovery.build('compute', 'v1')
+
+
+def create_instance(compute, name, startup_script, project, zone):
   image_response = compute.images().getFromFamily(
     project='centos-cloud', family='centos-7').execute()
   source_disk_image = image_response['selfLink']
   
   machine_type = 'zones/%s/machineTypes/f1-micro' % zone
-  startup_script = open(
-    os.path.join(
-      os.path.dirname(__file__), startup_script_file), 'r').read()
+
   
   config = {
   	'name': name,
@@ -53,6 +58,12 @@ def create_instance(compute, name, startup_script_file, project='nti310-320', zo
       'preemptible': False,
       'onHostMaintenance': 'MIGRATE',
       'automaticRestart': True
+    },
+   'tags': {
+    'items': [
+      'http-server',
+      'https-server'
+     ]
     },
     'deletionProtection': False,
     'serviceAccounts': [
@@ -90,7 +101,7 @@ def wait_for_operation(compute, project, zone, operation):
             operation=operation).execute()
 
         if result['status'] == 'DONE':
-            print("done.")
+            print('done.')
             if 'error' in result:
                 raise Exception(result['error'])
             return result
@@ -99,10 +110,50 @@ def wait_for_operation(compute, project, zone, operation):
 # [END wait_for_operation]
 
 
+
+def build(name, startup_script):  
+  
+  operation = ''
+  result = ''
+  
+  try:
+    operation = create_instance(compute, name, startup_script, project, zone)
+    #pprint(operation)
+    wait_for_operation(compute, project, zone, operation['name'])
+    
+    
+  except Exception as e:
+    print('ERRROR')
+    print(e)
+    if name in str(e) and 'already exists' in str(e):
+      if re.search(r'-[0-9]', name[-2:]):
+        name = name[:-1] + str(int(name[-1:]) + 1)
+        return build(name, startup_script)
+        
+      else:
+        name = name + '-1'
+        return build(name, startup_script)
+
+  else:
+     return operation['targetId']
+
+def postgres():
+    
+    startup_script = open(
+    os.path.join(
+      os.path.dirname(__file__), 'pgsql-install.sh'), 'r').read()
+    startup_script_edit = re.sub(r'(?<=postgres WITH PASSWORD ).*;', '\'{postgres}\';', startup_script)
+    startup_script_edit = re.sub(r'(?<=db_srv WITH PASSWORD ).*;', '{db_srv};', startup_script_edit)
+    
+    startup_script = startup_script_edit.format(postgres='test123', db_srv='test321')
+    
+    db_id = build('postgres', startup_script)
+    filter_id = 'id=' + db_id
+    result = compute.instances().list(project=project, zone=zone, filter=filter_id).execute()
+    return result['items'][0]['networkInterfaces'][0]['accessConfigs'][0]['natIP']
+
+    
 if __name__ == '__main__':
-  compute = googleapiclient.discovery.build('compute', 'v1')
-  operation = create_instance(compute, 'test-instance-120', 'nfs-server.sh' )
-  pprint(operation)
-  wait_for_operation(compute, project, zone, operation['name'])
-
-
+  
+  
+  #build(name, 'nfs-server.sh')

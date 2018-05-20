@@ -37,6 +37,7 @@ sed -i 's/Require local/Require all granted/g' /etc/httpd/conf.d/phpPgAdmin.conf
 sed -i '/extra_login_security/ s/true/false/g' /etc/phpPgAdmin/config.inc.php
 
 #Set lab password **NEVER USE ON THE OPEN INTERNET**
+sudo -i -u postgres psql -U postgres -d nti310 -c "ALTER USER db_srv WITH PASSWORD 'P@ssw0rd1';"
 sudo -i -u postgres psql -U postgres -d template1 -c "ALTER USER postgres WITH PASSWORD 'P@ssw0rd1';"
 
 #Change authentication method for local unix socket
