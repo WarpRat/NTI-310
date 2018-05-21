@@ -85,6 +85,10 @@ def create_instance(compute, name, startup_script, project, zone):
   	  'items': [{
   		  'key': 'startup-script',
   		  'value': startup_script
+       },
+       {
+          'key': 'serial-port-enable',
+          'value': '1'
        }]
     }
   }
@@ -164,7 +168,7 @@ def postgres():
     time.sleep(120)
     pprint(compute.instances().list(project=project, zone=zone, filter=filter_id).execute())
 
-    return {'ip': result['items'][0]['networkInterfaces'][0]['ip'], 'db_srv_pw': db_srv_pw}
+    return {'ip': result['items'][0]['networkInterfaces'][0]['networkIP'], 'db_srv_pw': db_srv_pw}
 
 def pw_gen(length):
     char_gen = random.SystemRandom()
