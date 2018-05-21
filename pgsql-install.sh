@@ -46,3 +46,11 @@ sed -i '/^local/ s/peer/md5/g' /var/lib/pgsql/data/pg_hba.conf
 #Restart services
 systemctl restart httpd
 systemctl restart postgresql
+
+#Get instance name and zone
+name=$(curl -H "Metadata-Flavor:Google" http://metadata.google.internal/computeMetadata/v1/instance/name)
+zone=$(curl -H "Metadata-Flavor:Google" http://metadata.google.internal/computeMetadata/v1/instance/zone)
+
+#Remove startup script from metadata
+gcloud compute instances add-metadata $name --metadata finished=1 --zone $zone
+gcloud compute instances remove-metadata $name --keys startup-script --zone $zone

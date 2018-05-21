@@ -121,7 +121,7 @@ def build(name, startup_script):
 
   try:
     operation = create_instance(compute, name, startup_script, project, zone)
-    #pprint(operation)
+
     wait_for_operation(compute, project, zone, operation['name'])
 
 
@@ -160,7 +160,11 @@ def postgres():
     save_pw(pg_pw, pg_pw_file)
     save_pw(db_srv_pw, db_srv_pw_file)
 
-    return result['items'][0]['networkInterfaces'][0]['accessConfigs'][0]['natIP']
+    print('debugging')
+    time.sleep(120)
+    pprint(compute.instances().list(project=project, zone=zone, filter=filter_id).execute())
+
+    return {'ip': result['items'][0]['networkInterfaces'][0]['ip'], 'db_srv_pw': db_srv_pw}
 
 def pw_gen(length):
     char_gen = random.SystemRandom()
@@ -182,11 +186,21 @@ def save_pw(new_pass, name):
     with os.fdopen(os.open(os.path.join(user_home, pw_dir, name), os.O_WRONLY | os.O_CREAT, 0o600), 'w') as pw_file:
         pw_file.write(new_pass)
 
+def django(db_info):
+
+    startup_script = open(
+    os.path.join(
+      os.path.dirname(__file__), 'django-install.sh'), 'r').read()
+    startup_script_edit = re.sub(r'(?<=\'PASSWORD\': ).*;', '\'{db_pw}\',', startup_script)
+    startup_script_edit = re.sub(r'(?<=\'HOST\': ).*;', '\'{host}\',', startup_script_edit)
+    startup_script = startup_script_edit.format(db_pw=db_info['ip'], host=db_info['db_srv_pw'])
+    django_id = build('django', startup_script)
+
 
 if __name__ == '__main__':
 
-    postgres_ip=postgres()
-    print(postgres_ip)
+    postgres_info=postgres()
+    pprint(postgres_info)
     #test_pass = pw_gen(32)
     #save_pw(test_pass, 'nadda')
 
