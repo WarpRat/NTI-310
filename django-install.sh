@@ -36,7 +36,13 @@ echo "DATABASES = {
     }
 }" >> /opt/django/testserver/testserver/settings.py
 
+#Get instance name and zone
+name=$(curl -H "Metadata-Flavor:Google" http://metadata.google.internal/computeMetadata/v1/instance/name)
+zone=$(curl -H "Metadata-Flavor:Google" http://metadata.google.internal/computeMetadata/v1/instance/zone)
 
+#Remove startup script from metadata
+gcloud compute instances add-metadata $name --metadata=finished=1 --zone $zone
+gcloud compute instances remove-metadata $name --keys startup-script --zone $zone
 
 
 /sbin/runuser django-admin -s /bin/bash -c "\

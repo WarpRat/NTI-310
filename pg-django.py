@@ -78,6 +78,7 @@ def create_instance(compute, name, startup_script, project, zone):
           'https://www.googleapis.com/auth/monitoring.write',
           'https://www.googleapis.com/auth/servicecontrol',
           'https://www.googleapis.com/auth/service.management.readonly',
+          'https://www.googleapis.com/auth/compute',
           'https://www.googleapis.com/auth/trace.append']
           }
         ],
@@ -164,10 +165,23 @@ def postgres():
     save_pw(pg_pw, pg_pw_file)
     save_pw(db_srv_pw, db_srv_pw_file)
 
-    print('debugging')
-    time.sleep(120)
-    pprint(compute.instances().list(project=project, zone=zone, filter=filter_id).execute())
-
+    print('Waiting for DB to come up.')
+    
+    time.sleep(20)
+    while True:
+      result = compute.instances().list(project=project, zone=zone, filter=filter_id).execute()
+      keys = []
+      for i in result['items'][0]['metadata']['items']:
+        keys.append(i['key'])
+      if 'finished' in keys:
+        print('finished')
+        break
+      else:
+        print('not ready yet')
+#        print(keys)
+        time.sleep(10)
+    
+    print('DB up. Launching Django server.')
     return {'ip': result['items'][0]['networkInterfaces'][0]['networkIP'], 'db_srv_pw': db_srv_pw}
 
 def pw_gen(length):
@@ -181,10 +195,10 @@ def save_pw(new_pass, name):
     user_home = os.path.expanduser('~'+os.environ['LOGNAME']+'/')
     if not os.path.isdir(
       os.path.join(user_home, pw_dir)):
-      print('making directory')
+      print('Making directory to store passwords. You should be able to find them in your home directory in the folder .script_passwd')
       os.makedirs(os.path.join(user_home, pw_dir), 0700)
     else:
-      print('exists')
+      print('password stored in $HOME/.script_passwd/')
 
     os.umask(0)
     with os.fdopen(os.open(os.path.join(user_home, pw_dir, name), os.O_WRONLY | os.O_CREAT, 0o600), 'w') as pw_file:
@@ -195,17 +209,52 @@ def django(db_info):
     startup_script = open(
     os.path.join(
       os.path.dirname(__file__), 'django-install.sh'), 'r').read()
-    startup_script_edit = re.sub(r'(?<=\'PASSWORD\': ).*;', '\'{db_pw}\',', startup_script)
-    startup_script_edit = re.sub(r'(?<=\'HOST\': ).*;', '\'{host}\',', startup_script_edit)
-    startup_script = startup_script_edit.format(db_pw=db_info['ip'], host=db_info['db_srv_pw'])
+    db_pw = '\'' + db_info['db_srv_pw'] + '\' ,'
+    db_host = '\'' + db_info['ip'] + '\' ,'
+    startup_script = re.sub(r'(?<=\'PASSWORD\': ).*,', db_pw, startup_script)
+    startup_script = re.sub(r'(?<=\'HOST\': ).*,', db_host, startup_script)
+
     django_id = build('django', startup_script)
+
+    
+    filter_id = 'id=' + django_id
+
+    print('Waiting for Django to come up.')
+
+    time.sleep(20)
+    while True:
+      result = compute.instances().list(project=project, zone=zone, filter=filter_id).execute()
+      keys = []
+      for i in result['items'][0]['metadata']['items']:
+        keys.append(i['key'])
+      if 'finished' in keys:
+        print('finished')
+        break
+      else:
+        print('not ready yet')
+        #print(keys)
+        time.sleep(10)
+
+    time.sleep(2)
+    
+    tags_body = {
+    	'items':[
+    	'http-server',
+    	'https-server',
+    	'django-test'],
+    	'fingerprint': result['items'][0]['tags']['fingerprint']
+    }
+    
+    operation = compute.instances().setTags(project=project, zone=zone, instance=result['items'][0]['name'], body=tags_body).execute()
+    wait_for_operation(compute, project, zone, operation['name'])
+
+    print('Django up.')
+
+    
 
 
 if __name__ == '__main__':
 
     postgres_info=postgres()
-    pprint(postgres_info)
-    #test_pass = pw_gen(32)
-    #save_pw(test_pass, 'nadda')
-
-  #build(name, 'nfs-server.sh')
+    django(postgres_info)
+    

@@ -20,6 +20,13 @@ systemctl restart postgresql
 #Allow users not matching system users to log in
 sed -i '/^host/ s/ident/md5/g' /var/lib/pgsql/data/pg_hba.conf
 
+#Listen on any address
+sed -i '/^\#listen_addresses/ s/localhost/\*/g' /var/lib/pgsql/data/postgresql.conf
+sed -i '/^\#listen_addresses/ s/^#//g' /var/lib/pgsql/data/postgresql.conf
+
+#Allow database service account to log in
+echo '
+host	nti310	db_srv	10.138.0.0/20	md5' >> /var/lib/pgsql/data/pg_hba.conf
 #Restart the server and ensure it starts on boot
 systemctl enable postgresql
 systemctl restart postgresql
@@ -52,5 +59,5 @@ name=$(curl -H "Metadata-Flavor:Google" http://metadata.google.internal/computeM
 zone=$(curl -H "Metadata-Flavor:Google" http://metadata.google.internal/computeMetadata/v1/instance/zone)
 
 #Remove startup script from metadata
-gcloud compute instances add-metadata $name --metadata finished=1 --zone $zone
+gcloud compute instances add-metadata $name --metadata=finished=1 --zone $zone
 gcloud compute instances remove-metadata $name --keys startup-script --zone $zone
