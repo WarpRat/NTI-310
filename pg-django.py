@@ -29,11 +29,10 @@ compute = googleapiclient.discovery.build('compute', 'v1')
 #Function that creates the actual instance with basic template
 #TODO: make instance size and base image customizable variables
 def create_instance(compute, name, startup_script, project, zone):
-    '''Creates gcloud instance using project, script, zone, and name vars'''
-
-
+  '''Creates gcloud instance using project, script, zone, and name vars'''
+  
   image_response = compute.images().getFromFamily(
-    project='centos-cloud', family='centos-7').execute()
+      project='centos-cloud', family='centos-7').execute()
   source_disk_image = image_response['selfLink']
 
   machine_type = 'zones/%s/machineTypes/f1-micro' % zone
@@ -129,7 +128,7 @@ def wait_for_operation(compute, project, zone, operation):
 
 #Handle instance name collision errors
 def build(name, startup_script):
-    '''Small wrapper around creating instances to handle name collisions gracefully'''
+  '''Small wrapper around creating instances to handle name collisions gracefully'''
 
   operation = ''
   result = ''
@@ -222,6 +221,7 @@ def pw_gen(length):
 def save_pw(new_pass, name):
     '''Make sure that a directory exists and write the password to a file
     with restrictive permissions for human use.'''
+    
     user_home = os.path.expanduser('~'+os.environ['LOGNAME']+'/')
     if not os.path.isdir(
       os.path.join(user_home, pw_dir)):
