@@ -10,22 +10,28 @@
 #
 
 
-import googleapiclient.discovery
-import os
-import time
-from pprint import pprint
-import re
-import random
-import string
+import googleapiclient.discovery  #The python gcloud API wrapper
+import os  #For various file manipulation
+import time  #To wait.
+from pprint import pprint  #Useful for debugging - can be removed when finished
+import re  #Regex engine for editing startup scripts before passing to gcloud
+import random  #To generate passwords
+import string  #To quickly build character lists for password generation
 
+#Global variables that may need to be adjusted
+#TODO: Set up argparse to allowed these to be passed in on command line
+#TODO: Add script names here as well for easy customization
 project = 'nti310-320'
 zone = 'us-west1-a'
-name = 'test-instance-100'
 pw_dir = '.script_passwd'
 compute = googleapiclient.discovery.build('compute', 'v1')
 
-
+#Function that creates the actual instance with basic template
+#TODO: make instance size and base image customizable variables
 def create_instance(compute, name, startup_script, project, zone):
+    '''Creates gcloud instance using project, script, zone, and name vars'''
+
+
   image_response = compute.images().getFromFamily(
     project='centos-cloud', family='centos-7').execute()
   source_disk_image = image_response['selfLink']
@@ -99,8 +105,11 @@ def create_instance(compute, name, startup_script, project, zone):
     zone=zone,
     body=config).execute()
 
+#Function to check the status of specific gcloud api calls. Directly copied from source below:
 # [START wait_for_operation] - from https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/compute/api/create_instance.py
 def wait_for_operation(compute, project, zone, operation):
+    '''Check if an api call to gcloud is finished and show errors'''
+
     print('Waiting for operation to finish...')
     while True:
         result = compute.zoneOperations().get(
@@ -118,8 +127,9 @@ def wait_for_operation(compute, project, zone, operation):
 # [END wait_for_operation]
 
 
-
+#Handle instance name collision errors
 def build(name, startup_script):
+    '''Small wrapper around creating instances to handle name collisions gracefully'''
 
   operation = ''
   result = ''
@@ -145,28 +155,43 @@ def build(name, startup_script):
   else:
      return operation['targetId']
 
+#Ingest bash script for setting up postgresql making changes where nessecary
 def postgres():
+    '''Pull in a script named pgsql-install.sh and install with random passwords'''
 
     startup_script = open(
     os.path.join(
       os.path.dirname(__file__), 'pgsql-install.sh'), 'r').read()
+
+    #Find default passwords in bash script and replace with python string formatting variables
     startup_script_edit = re.sub(r'(?<=postgres WITH PASSWORD ).*;', '\'{postgres}\';', startup_script)
     startup_script_edit = re.sub(r'(?<=db_srv WITH PASSWORD ).*;', '\'{db_srv}\';', startup_script_edit)
+
+    #Generate two random passwords
     pg_pw = pw_gen(24)
     db_srv_pw = pw_gen(24)
+
+    #Format script to use newly generated passwords
     startup_script = startup_script_edit.format(postgres=pg_pw, db_srv=db_srv_pw)
 
     db_id = build('postgres', startup_script)
+
+    #Get the ID of new instance for further info
     filter_id = 'id=' + db_id
     result = compute.instances().list(project=project, zone=zone, filter=filter_id).execute()
 
+    #Generate names for generated passwords based on server name, last 4 of ID, and account name
     pg_pw_file = result['items'][0]['name'] + '_' + result['items'][0]['id'][-4:] + '_postgres'
     db_srv_pw_file = result['items'][0]['name'] + '_' + result['items'][0]['id'][-4:] + '_db_srv'
+
+    #Call function to save passwords to admin machine
     save_pw(pg_pw, pg_pw_file)
     save_pw(db_srv_pw, db_srv_pw_file)
 
     print('Waiting for DB to come up.')
-    
+
+    #Wait until the bash script has written the finished key to metadata server
+    #TODO: This could probably be split into a function
     time.sleep(20)
     while True:
       result = compute.instances().list(project=project, zone=zone, filter=filter_id).execute()
@@ -178,17 +203,22 @@ def postgres():
         break
       else:
         print('not ready yet')
-#        print(keys)
         time.sleep(10)
-    
+
     print('DB up. Launching Django server.')
+
+    #Return nessecary info for django setup
     return {'ip': result['items'][0]['networkInterfaces'][0]['networkIP'], 'db_srv_pw': db_srv_pw}
 
+#Generates random passwords.
+#THIS IS ONLY CRYPOGRAPHICALLY SECURE BECAUSE IT USES SystemRandom!
 def pw_gen(length):
+    '''Generate random password of arbitrary length - only uses letters and numbers. Length >20 recommended'''
     char_gen = random.SystemRandom()
     char_map = string.ascii_letters + string.digits
     return ''.join([ char_gen.choice(char_map) for _ in xrange(length) ])
 
+#Create a directory and save generated passwords ensuring restrictive permissions.
 def save_pw(new_pass, name):
     '''Make sure that a directory exists and write the password to a file
     with restrictive permissions for human use.'''
@@ -200,11 +230,13 @@ def save_pw(new_pass, name):
     else:
       print('password stored in $HOME/.script_passwd/')
 
-    os.umask(0)
+    os.umask(0)  #This is critical!!
     with os.fdopen(os.open(os.path.join(user_home, pw_dir, name), os.O_WRONLY | os.O_CREAT, 0o600), 'w') as pw_file:
         pw_file.write(new_pass)
 
+#Ingest django bash install script and make necessary changes
 def django(db_info):
+    '''Install django from django-install.sh bash script'''
 
     startup_script = open(
     os.path.join(
@@ -216,7 +248,7 @@ def django(db_info):
 
     django_id = build('django', startup_script)
 
-    
+
     filter_id = 'id=' + django_id
 
     print('Waiting for Django to come up.')
@@ -232,11 +264,11 @@ def django(db_info):
         break
       else:
         print('not ready yet')
-        #print(keys)
         time.sleep(10)
 
     time.sleep(2)
-    
+
+    #Add the tag that opens the firewall on port 9000 for this instance
     tags_body = {
     	'items':[
     	'http-server',
@@ -244,17 +276,13 @@ def django(db_info):
     	'django-test'],
     	'fingerprint': result['items'][0]['tags']['fingerprint']
     }
-    
+
     operation = compute.instances().setTags(project=project, zone=zone, instance=result['items'][0]['name'], body=tags_body).execute()
     wait_for_operation(compute, project, zone, operation['name'])
 
     print('Django up.')
 
-    
-
-
 if __name__ == '__main__':
 
     postgres_info=postgres()
     django(postgres_info)
-    
