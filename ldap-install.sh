@@ -131,3 +131,11 @@ ou: Group" > /tmp/base.ldif
 
 #Add the basic structure just created to the LDAP database.
 ldapadd -x -W -D "cn=ldapadm,dc=nti310,dc=local" -f /tmp/base.ldif -y /root/ldap_admin_pass
+
+#Get instance name and zone
+name=$(curl -H "Metadata-Flavor:Google" http://metadata.google.internal/computeMetadata/v1/instance/name)
+zone=$(curl -H "Metadata-Flavor:Google" http://metadata.google.internal/computeMetadata/v1/instance/zone)
+
+#Remove startup script from metadata
+gcloud compute instances add-metadata $name --metadata=finished=1 --zone $zone
+gcloud compute instances remove-metadata $name --keys startup-script --zone $zone
