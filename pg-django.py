@@ -162,16 +162,22 @@ def postgres():
     os.path.join(
       os.path.dirname(__file__), 'pgsql-install.sh'), 'r').read()
 
-    #Find default passwords in bash script and replace with python string formatting variables
-    startup_script_edit = re.sub(r'(?<=postgres WITH PASSWORD ).*;', '\'{postgres}\';', startup_script)
-    startup_script_edit = re.sub(r'(?<=db_srv WITH PASSWORD ).*;', '\'{db_srv}\';', startup_script_edit)
-
     #Generate two random passwords
-    pg_pw = pw_gen(24)
-    db_srv_pw = pw_gen(24)
+    pg_pw = "'" + pw_gen(24) + "' ;"
+    db_srv_pw = "'" + pw_gen(24) + "' ;"
+
+
+    #Find default passwords in bash script and replace with python string formatting variables
+    startup_script_edit = re.sub(r'(?<=postgres WITH PASSWORD ).*;', pg_pw, startup_script)
+    startup_script_edit = re.sub(r'(?<=db_srv WITH PASSWORD ).*;', db_srv_pw, startup_script_edit)
+
+#    print(pg_pw)
+#    print(db_srv_pw)
+
+#    pprint(startup_script_edit)
 
     #Format script to use newly generated passwords
-    startup_script = startup_script_edit.format(postgres=pg_pw, db_srv=db_srv_pw)
+#    startup_script = startup_script_edit.format(postgres=pg_pw, db_srv=db_srv_pw)
 
     db_id = build('postgres', startup_script)
 
