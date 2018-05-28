@@ -181,7 +181,7 @@ def write_metadata(key_name, value):
   new_meta = cur_meta.append({'key': key_name, 'value': value})
   body = {'fingerprint': fingerprint, 'items': new_meta}
 
-  result = compute.projects().setCommonInstanceMetadata(project=project, body=body).execute
+  result = compute.projects().setCommonInstanceMetadata(project=project, body=body).execute()
 
   wait_for_operation(compute, project, zone, result['name'])
 
