@@ -176,7 +176,10 @@ def write_metadata(key_name, value):
   '''write a new key value pair to project wide metadata'''
 
   request = compute.projects().get(project=project).execute()
-  cur_meta = request['commonInstanceMetadata']['items']
+  try:
+    cur_meta = request['commonInstanceMetadata']['items']
+  except KeyError:
+    cur_meta = []
   fingerprint = request['commonInstanceMetadata']['fingerprint']
   new_meta = cur_meta.append({'key': key_name, 'value': value})
   body = {'fingerprint': fingerprint, 'items': new_meta}
