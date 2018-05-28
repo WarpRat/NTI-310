@@ -175,7 +175,7 @@ def ldap(script_name):
 def write_metadata(key_name, value):
   '''write a new key value pair to project wide metadata'''
 
-  request = compute.projects().get(project=project).execute
+  request = compute.projects().get(project=project).execute()
   cur_meta = request['commonInstanceMetadata']['items']
   fingerprint = request['commonInstanceMetadata']['fingerprint']
   new_meta = cur_meta.append({'key': key_name, 'value': value})
