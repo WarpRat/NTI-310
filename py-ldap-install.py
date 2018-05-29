@@ -181,8 +181,10 @@ def write_metadata(key_name, value):
   except KeyError:
     cur_meta = []
   fingerprint = request['commonInstanceMetadata']['fingerprint']
-  new_meta = cur_meta.append({'key': key_name, 'value': value})
-  body = {'fingerprint': fingerprint, 'items': new_meta}
+  new_meta = cur_meta.append({'key':key_name, 'value':value})
+  print('new meta')
+  print(cur_meta)
+  body = {'fingerprint': fingerprint, 'items': cur_meta}
 
   print('writing new metadata with:')
   print(body)
