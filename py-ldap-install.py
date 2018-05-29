@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 #
+#Robert Russell NTI310
+#
 #Python script that installs ldap server and stores the
 #server IP in gloud metadata server
+#must be run in the same directory as the ldap-install.sh startup script
+#and must be run from a gcloud instance with compute level api permission.
 #
 
 import googleapiclient.discovery
@@ -181,9 +185,8 @@ def write_metadata(key_name, value):
   except KeyError:
     cur_meta = []
   fingerprint = request['commonInstanceMetadata']['fingerprint']
-  new_meta = cur_meta.append({'key':key_name, 'value':value})
-  print('new meta')
-  print(cur_meta)
+  cur_meta.append({'key':key_name, 'value':value})
+  
   body = {'fingerprint': fingerprint, 'items': cur_meta}
 
   print('writing new metadata with:')
@@ -191,8 +194,10 @@ def write_metadata(key_name, value):
 
   result = compute.projects().setCommonInstanceMetadata(project=project, body=body).execute()
 
+  print(result)
+
 
 if __name__ == '__main__':
 
-  ldap_ip=ldap(script_name)
-  write_metadata('ldap_ip',ldap_ip)
+  ldap_ip=ldap(script_name) #Boot up ldap server
+  write_metadata('ldap_ip',ldap_ip) #Write ldap IP to project wide metadata for later use
