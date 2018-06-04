@@ -44,8 +44,8 @@ sed -i 's/Require local/Require all granted/g' /etc/httpd/conf.d/phpPgAdmin.conf
 sed -i '/extra_login_security/ s/true/false/g' /etc/phpPgAdmin/config.inc.php
 
 #Set lab password **NEVER USE ON THE OPEN INTERNET**
-sudo -i -u postgres psql -U postgres -d nti310 --command "ALTER USER db_srv WITH PASSWORD 'P@ssw0rd1';" | tee /tmp/nti_cmd
-sudo -i -u postgres psql -U postgres -d template1 --command "ALTER USER postgres WITH PASSWORD 'P@ssw0rd1';" | tee /tmp/pg_cmd
+sudo -i -u postgres psql -U postgres -d nti310 --command "ALTER USER db_srv WITH PASSWORD 'P@ssw0rd1';"
+sudo -i -u postgres psql -U postgres -d template1 --command "ALTER USER postgres WITH PASSWORD 'P@ssw0rd1';"
 
 #Change authentication method for local unix socket
 sed -i '/^local/ s/peer/md5/g' /var/lib/pgsql/data/pg_hba.conf
