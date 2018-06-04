@@ -163,18 +163,17 @@ def postgres():
       os.path.dirname(__file__), 'pgsql-install.sh'), 'r').read()
 
     #Generate two random passwords
-    pg_pw = "'" + pw_gen(24) + "' ;"
-    db_srv_pw = "'" + pw_gen(24) + "' ;"
+    pg_pw = pw_gen(24)
+    db_srv_pw = pw_gen(24)
+
+    pg_pw_script = "'" + pg_pw + "' ;"
+    db_srv_pw_script = "'" + db_srv_pw + "' ;"
 
 
     #Find default passwords in bash script and replace with python string formatting variables
-    startup_script_edit = re.sub(r'(?<=postgres WITH PASSWORD ).*;', pg_pw, startup_script)
-    startup_script_edit = re.sub(r'(?<=db_srv WITH PASSWORD ).*;', db_srv_pw, startup_script_edit)
+    startup_script_edit = re.sub(r'(?<=postgres WITH PASSWORD ).*;', pg_pw_script, startup_script)
+    startup_script_edit = re.sub(r'(?<=db_srv WITH PASSWORD ).*;', db_srv_pw_script, startup_script_edit)
 
-
-
-    #Format script to use newly generated passwords
-#    startup_script = startup_script_edit.format(postgres=pg_pw, db_srv=db_srv_pw)
 
     db_id = build('postgres', startup_script)
 
@@ -270,7 +269,7 @@ def django(name, db_info):
         time.sleep(10)
 
     time.sleep(2)
-    
+
     print('Django up.')
 
 def wait_for_install(id):

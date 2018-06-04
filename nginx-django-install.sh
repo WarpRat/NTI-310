@@ -31,8 +31,8 @@ echo "DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'nti310',
         'USER': 'db_srv',
-        'PASSWORD': 'Q3KyD4BWjR:En9*A((Syhgny8',
-        'HOST': '10.138.0.9',
+        'PASSWORD': '',
+        'HOST': '',
         'PORT': '5432',
     }
 }" >> /var/django/nti320/nti320/settings.py
