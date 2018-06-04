@@ -1,13 +1,26 @@
 #!/usr/bin/env python
 #
-#A python script for launching a postgres database and a django webserver that uses
-#the postgres database as a backend.
-#Google Cloud Api python library code borrowed heavily from:
-#https://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/compute/api/create_instance.py
+#A python script that turns on an example 3 teired web app
 #
-#This script relies on either running from a gcloud instance/cloud shell or having gcloud authentication already
-#configured on the machine it's run from. It doesn't handle any authorization
+#This will currently turn on:
+# * one nginx load balancer and static media host
+# * two django application servers
+# * one postgres database
 #
+#This runs a small example page that does nothing but tell the visitor
+#what server they're connected to, while displaying a static picture of a beach
+#from the nginx caching and loadbalancing layer.
+#
+#Use: run this script on a glcoud instance with at least compute API access
+#Setting the variable below should be the only place that the project name
+#would need to be changed in order to run in any gcloud project. The only 
+#other requirements are having the following files available in the same directory
+#as this script when it's run:
+# * nginx-loadbalancer.sh
+# * nginx-django-install.sh
+# * pgsql-install.sh
+#
+
 
 
 import googleapiclient.discovery  #The python gcloud API wrapper
