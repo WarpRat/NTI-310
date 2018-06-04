@@ -37,6 +37,8 @@ echo '}' >> /etc/nginx/nginx.conf
 
 wget -O /var/lbdemo/static/beach.jpg https://s3-us-west-2.amazonaws.com/robertrussell/NTI-320/wood-sea-nature-449627.jpg
 
+setsebool -P httpd_can_network_connect 1
+
 systemctl enable nginx
 systemctl restart nginx
 

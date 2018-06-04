@@ -85,8 +85,6 @@ NotifyAccess=main
 WantedBy=multi-user.target
 EOF
 
-setsebool -P httpd_can_network_connect 1
-
 chown uwsgi. -R /etc/uwsgi
 systemctl enable emperor.uwsgi
 systemctl restart emperor.uwsgi
