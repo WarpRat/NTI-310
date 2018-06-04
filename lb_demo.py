@@ -175,7 +175,7 @@ def postgres():
     startup_script_edit = re.sub(r'(?<=db_srv WITH PASSWORD ).*;', db_srv_pw_script, startup_script_edit)
 
 
-    db_id = build('postgres', startup_script)
+    db_id = build('postgres', startup_script_edit)
 
     #Get the ID of new instance for further info
     filter_id = 'id=' + db_id
