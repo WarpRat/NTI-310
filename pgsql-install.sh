@@ -46,8 +46,8 @@ sed -i '/extra_login_security/ s/true/false/g' /etc/phpPgAdmin/config.inc.php
 #Set lab password **NEVER USE ON THE OPEN INTERNET**
 nti_cmd="ALTER USER db_srv WITH PASSWORD 'P@ssw0rd1';"
 pg_cmd="ALTER USER postgres WITH PASSWORD 'P@ssw0rd1';"
-sudo -i -u postgres psql -U postgres -d nti310 -c $nti_cmd
-sudo -i -u postgres psql -U postgres -d template1 -c $pg_cmd
+sudo -i -u postgres psql -U postgres -d nti310 --command $nti_cmd
+sudo -i -u postgres psql -U postgres -d template1 --command $pg_cmd
 
 echo $nti_cmd > /tmp/nti_cmd
 echo $pg_cmd > /tmp/pg_cmd

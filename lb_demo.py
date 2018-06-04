@@ -166,8 +166,8 @@ def postgres():
     pg_pw = pw_gen(24)
     db_srv_pw = pw_gen(24)
 
-    pg_pw_script = "'" + pg_pw + "' ;"
-    db_srv_pw_script = "'" + db_srv_pw + "' ;"
+    pg_pw_script = "'" + pg_pw + "';"
+    db_srv_pw_script = "'" + db_srv_pw + "';"
 
 
     #Find default passwords in bash script and replace with python string formatting variables

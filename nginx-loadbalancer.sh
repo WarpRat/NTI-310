@@ -4,7 +4,7 @@ yum install nginx wget -y
 
 mkdir -p /var/lbdemo/static/
 
-ips=$(gcloud compute instances list | grep -3 '^lb-.*' | awk '{print $4}')
+ips=$(gcloud compute instances list | grep -e '^lb-.*' | awk '{print $4}')
 
 for i in $ips; do
    printf "    server $i:3990;\n"
@@ -33,6 +33,7 @@ server {
 EOF
 
 sed -i '37,$d' /etc/nginx/nginx.conf
+echo '}' >> /etc/nginx/nginx.conf
 
 wget -O /var/lbdemo/static/beach.jpg https://s3-us-west-2.amazonaws.com/robertrussell/NTI-320/wood-sea-nature-449627.jpg
 
