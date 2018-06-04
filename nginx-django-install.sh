@@ -24,18 +24,18 @@ ip=$(curl http://metadata.google.internal/computeMetadata/v1/instance/network-in
 sed -i "/ALLOWED_HOSTS/ s/\[.*\]/\['$ip'\]/g" /var/django/nti320/nti320/settings.py
 
 
-# sed -i '/^DATABASES/,+5d' /var/django/nti320/nti320/settings.py
-# 
-# echo "DATABASES = {
-    # 'default':{
-        # 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        # 'NAME': 'nti310',
-        # 'USER': 'db_srv',
-        # 'PASSWORD': 'Q3KyD4BWjR:En9*A((Syhgny8',
-        # 'HOST': '10.138.0.9',
-        # 'PORT': '5432',
-    # }
-# }" >> /var/django/nti320/nti320/settings.py
+sed -i '/^DATABASES/,+5d' /var/django/nti320/nti320/settings.py
+
+echo "DATABASES = {
+    'default':{
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'nti310',
+        'USER': 'db_srv',
+        'PASSWORD': 'Q3KyD4BWjR:En9*A((Syhgny8',
+        'HOST': '10.138.0.9',
+        'PORT': '5432',
+    }
+}" >> /var/django/nti320/nti320/settings.py
 
 python /var/django/nti320/manage.py migrate
 mkdir -p /var/log/uwsgi
