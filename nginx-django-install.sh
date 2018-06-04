@@ -1,7 +1,8 @@
 #!/bin/bash
 #
 #Simple script to install a django server and connect it to a pgsql backend
-#This script is designed for use on GCP.
+#This script is designed for use on GCP as part of a 3 tiered application.
+#This is designed to be connected to via nginx in a cluster.
 #
 
 yum install -y epel-release
@@ -21,7 +22,7 @@ chown -R uwsgi. /var/django
 
 ip=$(curl http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip -H "Metadata-Flavor: Google")
 
-sed -i "/ALLOWED_HOSTS/ s/\[.*\]/\['$ip'\]/g" /var/django/nti320/nti320/settings.py
+sed -i "/ALLOWED_HOSTS/ s/\[.*\]/\['\*'\]/g" /var/django/nti320/nti320/settings.py
 
 
 sed -i '/^DATABASES/,+5d' /var/django/nti320/nti320/settings.py
@@ -83,6 +84,8 @@ NotifyAccess=main
 [Install]
 WantedBy=multi-user.target
 EOF
+
+setsebool -P httpd_can_network_connect 1
 
 chown uwsgi. -R /etc/uwsgi
 systemctl enable emperor.uwsgi
