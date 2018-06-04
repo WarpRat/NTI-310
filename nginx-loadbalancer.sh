@@ -4,7 +4,7 @@ yum install nginx wget -y
 
 mkdir -p /var/lbdemo/static/
 
-ips=$(gcloud compute instances list | grep lb-* | awk '{print $4}')
+ips=$(gcloud compute instances list | grep -3 '^lb-.*' | awk '{print $4}')
 
 for i in $ips; do
    printf "    server $i:3990;\n"

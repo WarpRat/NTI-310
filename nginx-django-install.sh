@@ -9,7 +9,7 @@ yum update -y
 yum install -y gcc python-devel python-pip git
 pip install --upgrade pip
 pip install --upgrade django
-pip install --upgrade uwsgi
+pip install --upgrade uwsgi psycopg2
 
 useradd -r -s /sbin/nologin uwsgi
 
