@@ -349,11 +349,11 @@ if __name__ == '__main__':
     for i in services:
       if check_ready(i['id']):
         services.pop(i)
-        if i = ldap_info:
+        if i == ldap_info:
           ldap_client('ldap-client.sh', 'ldap-client-nti310')
-        elif i = nfs_info:
+        elif i == nfs_info:
           nfs_client('nfs-client.sh', 'nfs-client-nti310')
-        elif i = db_info:
+        elif i == db_info:
           django('django-install.sh', 'django-nti310', db_info)
         else:
           sleep(1)
