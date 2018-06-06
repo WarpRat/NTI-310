@@ -319,6 +319,7 @@ def write_metadata(key_name, value):
   
   for i in cur_meta:
     if key_name in i.keys():
+      print('TRUE')
       cur_meta.remove(i)
       body = {'fingerprint': fingerprint, 'items': cur_meta}
       compute.projects().setCommonInstanceMetadata(project=project, body=body).execute()
