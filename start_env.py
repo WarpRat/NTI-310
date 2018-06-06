@@ -265,6 +265,20 @@ def django(startup_script, name, db_info):
 
     result = compute.instances().list(project=project, zone=zone, filter=filter_id).execute()
 
+    sleep(2)
+
+    #Add the tag that opens the firewall on port 9000 for this instance
+    tags_body = {
+    	'items':[
+    	'http-server',
+    	'https-server',
+    	'django-test'],
+    	'fingerprint': result['items'][0]['tags']['fingerprint']
+    }
+
+    operation = compute.instances().setTags(project=project, zone=zone, instance=result['items'][0]['name'], body=tags_body).execute()
+    wait_for_operation(compute, project, zone, operation['name'])
+
     return result
 
 #Generates random passwords.
@@ -300,15 +314,18 @@ def write_metadata(key_name, value):
     cur_meta = request['commonInstanceMetadata']['items']
   except KeyError:
     cur_meta = []
-  fingerprint = request['commonInstanceMetadata']['fingerprint']
-  cur_meta.append({'key':key_name, 'value':value})
   
-  body = {'fingerprint': fingerprint, 'items': cur_meta}
-
-  print('writing new metadata with:')
-  print(body)
-
-  result = compute.projects().setCommonInstanceMetadata(project=project, body=body).execute()
+  fingerprint = request['commonInstanceMetadata']['fingerprint']
+  
+  if key_name in cur_meta.keys():
+    cur_meta[key_name] = value
+    body = {'fingerprint': fingerprint, 'items': cur_meta}
+    compute.projects().setCommonInstanceMetadata(project=project, body=body).execute()
+  
+  else:
+    cur_meta.append({'key':key_name, 'value':value})
+    body = {'fingerprint': fingerprint, 'items': cur_meta}
+    compute.projects().setCommonInstanceMetadata(project=project, body=body).execute()
 
 
 def check_ready(id):
@@ -347,6 +364,6 @@ if __name__ == '__main__':
         elif i == nfs_info:
           nfs_client('nfs-client.sh', 'nfs-client-nti310-clnt')
         elif i == db_info:
-          django('django-install.sh', 'django-nti310-clnt', db_info)
+          django('django-install.sh', 'django-nti310-srv', db_info)
         else:
           sleep(1)
