@@ -310,7 +310,6 @@ def write_metadata(key_name, value):
 
   result = compute.projects().setCommonInstanceMetadata(project=project, body=body).execute()
 
-  print(result)
 
 def check_ready(id):
   '''check meta-data server to see if the finished key is written - check twice then return'''
