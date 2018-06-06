@@ -157,8 +157,6 @@ def ldap_server(script_name, name):
   filter_id = 'id=' + ldap_id
   result = compute.instances().list(project=project, zone=zone, filter=filter_id).execute()
 
-  wait_for_install(filter_id)
-
   ip = result['items'][0]['networkInterfaces'][0]['networkIP']
 
   return {'ip': ip, 'id': ldap_id}
@@ -175,8 +173,6 @@ def ldap_client(script_name, name):
   filter_id = 'id=' + ldap_id
   result = compute.instances().list(project=project, zone=zone, filter=filter_id).execute()
 
-  wait_for_install(filter_id)
-
   ip = result['items'][0]['networkInterfaces'][0]['networkIP']
 
   return {'ip': ip, 'id': ldap_id}
@@ -192,8 +188,6 @@ def nfs_server(script_name, name):
 
   filter_id = 'id=' + nfs_id
   result = compute.instances().list(project=project, zone=zone, filter=filter_id).execute()
-
-  wait_for_install(filter_id)
 
   ip = result['items'][0]['networkInterfaces'][0]['networkIP']
 
