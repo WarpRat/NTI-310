@@ -1,7 +1,8 @@
 #!/bin/bash
-
+#
 #Automating LDAP server install for NTI-310
-
+#
+yum update -y
 
 #Install git and clone the instructional repo
 yum install -y git

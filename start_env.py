@@ -265,7 +265,7 @@ def django(startup_script, name, db_info):
 
     result = compute.instances().list(project=project, zone=zone, filter=filter_id).execute()
 
-    sleep(2)
+    time.sleep(2)
 
     #Add the tag that opens the firewall on port 9000 for this instance
     tags_body = {
@@ -366,4 +366,4 @@ if __name__ == '__main__':
         elif i == db_info:
           django('django-install.sh', 'django-nti310-srv', db_info)
         else:
-          sleep(1)
+          time.sleep(1)
