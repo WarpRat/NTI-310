@@ -315,18 +315,17 @@ def check_ready(id):
   '''check meta-data server to see if the finished key is written - check twice then return'''
 
   id = "id=" + str(id)
-  i = 0
-  while i < 2:
-    result = compute.instances().list(project=project, zone=zone, filter=id).execute()
-    keys = []
-    for i in result['items'][0]['metadata']['items']:
-      keys.append(i['key'])
-    if 'finished' in keys:
-      print('%s is finished.' % result['items'][0]['name'])
-      return True
-    else:
-      print('%s is not ready yet' % result['items'][0]['name'])
-      time.sleep(10)
+  
+  result = compute.instances().list(project=project, zone=zone, filter=id).execute()
+  keys = []
+  for i in result['items'][0]['metadata']['items']:
+    keys.append(i['key'])
+  if 'finished' in keys:
+    print('%s is finished.' % result['items'][0]['name'])
+    return True
+  else:
+    print('%s is not ready yet' % result['items'][0]['name'])
+    time.sleep(10)
   return False
 
 if __name__ == '__main__':
@@ -342,7 +341,7 @@ if __name__ == '__main__':
 
     for i in services:
       if check_ready(i['id']):
-        services.pop(i)
+        services.remove(i)
         if i == ldap_info:
           ldap_client('ldap-client.sh', 'ldap-nti310-clnt')
         elif i == nfs_info:
