@@ -315,6 +315,7 @@ def write_metadata(key_name, value):
 def check_ready(id):
   '''check meta-data server to see if the finished key is written - check twice then return'''
 
+  id = "id=" + str(id)
   i = 0
   while i < 2:
     result = compute.instances().list(project=project, zone=zone, filter=id).execute()
