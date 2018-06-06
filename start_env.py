@@ -331,7 +331,7 @@ def check_ready(id):
       print('%s is finished.' % result['items'][0]['name'])
       return True
     else:
-      print('%s is not ready yet' % result['items'][0]['name')
+      print('%s is not ready yet' % result['items'][0]['name'])
       time.sleep(10)
   return False
 
