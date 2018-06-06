@@ -317,6 +317,7 @@ def write_metadata(key_name, value):
   
   fingerprint = request['commonInstanceMetadata']['fingerprint']
   
+  print(cur_meta)
   for i in cur_meta:
     if key_name in i.keys():
       print('TRUE')
