@@ -136,11 +136,11 @@ def build(name, startup_script, image):
     if name in str(e) and 'already exists' in str(e):
       if re.search(r'-[0-9]', name[-2:]):
         name = name[:-1] + str(int(name[-1:]) + 1)
-        return build(name, startup_script)
+        return build(name, startup_script, image)
 
       else:
         name = name + '-1'
-        return build(name, startup_script)
+        return build(name, startup_script, image)
 
   else:
      return operation['targetId']
@@ -317,15 +317,13 @@ def write_metadata(key_name, value):
   
   fingerprint = request['commonInstanceMetadata']['fingerprint']
   
-  if key_name in cur_meta.keys():
-    cur_meta[key_name] = value
-    body = {'fingerprint': fingerprint, 'items': cur_meta}
-    compute.projects().setCommonInstanceMetadata(project=project, body=body).execute()
-  
-  else:
-    cur_meta.append({'key':key_name, 'value':value})
-    body = {'fingerprint': fingerprint, 'items': cur_meta}
-    compute.projects().setCommonInstanceMetadata(project=project, body=body).execute()
+  for i in cur_meta:
+    if key_name in i.keys():
+      i[key_name] = value
+    
+  cur_meta.append({'key':key_name, 'value':value})
+  body = {'fingerprint': fingerprint, 'items': cur_meta}
+  compute.projects().setCommonInstanceMetadata(project=project, body=body).execute()
 
 
 def check_ready(id):
