@@ -3,6 +3,9 @@
 #Install a basic nfs server with a few shared directories
 #
 
+#Install updates
+yum update -y
+
 #Install nfs utilities
 yum install -y nfs-utils
 
@@ -23,3 +26,11 @@ done
 
 #restart the nfs server
 systemctl restart nfs-server
+
+#Get instance name and zone
+name=$(curl -H "Metadata-Flavor:Google" http://metadata.google.internal/computeMetadata/v1/instance/name)
+zone=$(curl -H "Metadata-Flavor:Google" http://metadata.google.internal/computeMetadata/v1/instance/zone)
+
+#Remove startup script from metadata
+gcloud compute instances add-metadata $name --metadata=finished=1 --zone $zone
+gcloud compute instances remove-metadata $name --keys startup-script --zone $zone

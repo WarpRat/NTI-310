@@ -4,7 +4,7 @@
 #
 
 #Set the address of the server
-NFS_SERVER=172.31.17.241
+NFS_SERVER=$(curl "http://metadata.google.internal/computeMetadata/v1/project/attributes/nfs_ip" -H "Metadata-Flavor: Google")
 
 #Install the nfs client
 apt-get install -y nfs-client
@@ -26,3 +26,11 @@ fi
 
 #Cleanup debugging file if it wasn't needed
 [ -s /root/showmounterr.log ] || rm /root/showmounterr.log
+
+#Get instance name and zone
+name=$(curl -H "Metadata-Flavor:Google" http://metadata.google.internal/computeMetadata/v1/instance/name)
+zone=$(curl -H "Metadata-Flavor:Google" http://metadata.google.internal/computeMetadata/v1/instance/zone)
+
+#Remove startup script from metadata
+gcloud compute instances add-metadata $name --metadata=finished=1 --zone $zone
+gcloud compute instances remove-metadata $name --keys startup-script --zone $zone
