@@ -330,11 +330,11 @@ def check_ready(id):
   return False
 
 if __name__ == '__main__':
-  ldap_info = ldap_server('ldap-install.sh', 'ldap-nti310')
+  ldap_info = ldap_server('ldap-install.sh', 'ldap-nti310-srv')
   write_metadata('ldap_ip', ldap_info['ip'])
-  nfs_info = nfs_server('nfs-server.sh', 'nfs-nti310')
+  nfs_info = nfs_server('nfs-server.sh', 'nfs-nti310-srv')
   write_metadata('nfs_ip', nfs_info['ip'])
-  db_info = postgres('pgsql-install.sh', 'postgres-nti310')
+  db_info = postgres('pgsql-install.sh', 'postgres-nti310-srv')
 
   services = [ldap_info, nfs_info, db_info]
 
@@ -344,10 +344,10 @@ if __name__ == '__main__':
       if check_ready(i['id']):
         services.pop(i)
         if i == ldap_info:
-          ldap_client('ldap-client.sh', 'ldap-client-nti310')
+          ldap_client('ldap-client.sh', 'ldap-nti310-clnt')
         elif i == nfs_info:
-          nfs_client('nfs-client.sh', 'nfs-client-nti310')
+          nfs_client('nfs-client.sh', 'nfs-client-nti310-clnt')
         elif i == db_info:
-          django('django-install.sh', 'django-nti310', db_info)
+          django('django-install.sh', 'django-nti310-clnt', db_info)
         else:
           sleep(1)
