@@ -317,14 +317,14 @@ def write_metadata(key_name, value):
   
   fingerprint = request['commonInstanceMetadata']['fingerprint']
   
-  print(cur_meta)
   for i in cur_meta:
-    if key_name in i.keys():
-      print('TRUE')
+    if key_name in i.values():
       cur_meta.remove(i)
       body = {'fingerprint': fingerprint, 'items': cur_meta}
       compute.projects().setCommonInstanceMetadata(project=project, body=body).execute()
       time.sleep(2)
+      request = compute.projects().get(project=project).execute()  
+      fingerprint = request['commonInstanceMetadata']['fingerprint']
     
   cur_meta.append({'key':key_name, 'value':value})
   body = {'fingerprint': fingerprint, 'items': cur_meta}
