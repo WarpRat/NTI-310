@@ -20,8 +20,6 @@ mv /tmp/django_tmp/django /var/
 
 chown -R uwsgi. /var/django
 
-setenforce 0
-
 ip=$(curl http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip -H "Metadata-Flavor: Google")
 
 sed -i "/ALLOWED_HOSTS/ s/\[.*\]/\['\*'\]/g" /var/django/nti320/nti320/settings.py
